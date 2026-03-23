@@ -69,6 +69,47 @@ svg.ic{display:inline-block;vertical-align:middle;fill:none;stroke:currentColor;
 .auth-btn:active{transform:translateY(0)}
 .auth-btn:disabled{opacity:.35;cursor:not-allowed;transform:none}
 .auth-err{color:var(--danger);font-size:12px;margin-top:12px;min-height:18px}
+.auth-ok{color:var(--green);font-size:12px;margin-top:12px}
+.auth-tabs{display:flex;gap:0;margin-bottom:24px;border-radius:var(--radius-xs);overflow:hidden;border:1px solid var(--glass-b)}
+.auth-tab{flex:1;padding:10px;font-family:var(--font);font-size:12px;font-weight:600;letter-spacing:.3px;cursor:pointer;border:none;background:transparent;color:var(--muted);transition:all .2s var(--ease)}
+.auth-tab.active{background:var(--accent-s);color:var(--accent)}
+.auth-tab:hover:not(.active){color:var(--text)}
+.auth-reg-only{display:none}
+.auth-box.reg-mode .auth-reg-only{display:block}
+.auth-box.reg-mode .auth-login-only{display:none}
+
+/* ══════════ PENDING SCREEN ══════════ */
+.pending{display:none;min-height:100vh;min-height:100dvh;align-items:center;justify-content:center;padding:20px;position:relative;z-index:1}
+.pending.show{display:flex}
+.pending-box{background:var(--surface);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--glass-b);border-radius:20px;padding:40px 36px;max-width:420px;width:100%;text-align:center;animation:fadeIn .5s var(--ease)}
+.pending-box .p-ic{width:64px;height:64px;border-radius:16px;background:var(--orange-s);display:inline-grid;place-items:center;margin-bottom:16px}
+.pending-box .p-ic svg{color:var(--orange)}
+.pending-box h2{font-size:18px;color:var(--white);margin-bottom:8px;font-weight:700}
+.pending-box p{font-size:13.5px;line-height:1.7;color:var(--text);margin-bottom:16px}
+.pending-box .p-email{font-family:var(--mono);font-size:12px;color:var(--muted);background:var(--surface2);padding:6px 14px;border-radius:6px;display:inline-block;margin-bottom:20px}
+
+/* ══════════ PROFILE EDIT ══════════ */
+.profile-edit{display:none;background:rgba(15,18,35,.6);border:1px solid var(--glass-b);border-radius:var(--radius-sm);padding:14px;margin-top:10px}
+.profile-edit.show{display:block;animation:fadeIn .2s var(--ease)}
+.profile-edit input{width:100%;margin-bottom:8px}
+.profile-edit .btns{margin-top:4px}
+.sb-name-row{display:flex;align-items:center;gap:4px}
+.sb-edit{background:none;border:none;cursor:pointer;color:var(--muted);padding:2px;transition:color .2s;display:grid;place-items:center;flex-shrink:0}
+.sb-edit:hover{color:var(--accent)}
+.sb-edit svg{width:13px;height:13px}
+
+/* ══════════ STAFF SECTIONS ══════════ */
+.st-section{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin:20px 0 10px;display:flex;align-items:center;gap:6px}
+.st-section:first-child{margin-top:0}
+.st-section svg{width:14px;height:14px}
+.staff-actions{display:flex;gap:6px;flex-shrink:0}
+.staff-card.is-pending{border-left:3px solid var(--orange)}
+.staff-role.is-pending{color:var(--orange);background:var(--orange-s)}
+.staff-role.rejected{color:var(--danger);background:var(--danger-s)}
+
+/* ══════════ EDIT INLINE ══════════ */
+.edit-box{background:var(--surface);backdrop-filter:blur(12px);border:1px solid var(--glass-bh);border-radius:var(--radius);padding:20px;margin-bottom:12px;animation:fadeIn .2s var(--ease)}
+.edit-box h3{font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:2px;margin-bottom:12px;display:flex;align-items:center;gap:6px}
 
 /* ══════════ APP ══════════ */
 .app{display:none;min-height:100vh;min-height:100dvh;position:relative;z-index:1}
@@ -295,14 +336,33 @@ select.field{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 
 <!-- ══════════ AUTH SCREEN ══════════ -->
 <div class="auth" id="authScreen">
-  <div class="auth-box">
+  <div class="auth-box" id="authBox">
     <div class="auth-logo" id="authLogo"></div>
     <h1>Кибер<span class="o">Pride</span></h1>
     <div class="auth-sub">Портал сотрудников</div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tabLogin" onclick="authMode('login')">Вход</button>
+      <button class="auth-tab" id="tabReg" onclick="authMode('reg')">Регистрация</button>
+    </div>
+    <input class="auth-field auth-reg-only" type="text" id="authName" placeholder="Имя (как тебя зовут)" autocomplete="name" aria-label="Имя">
     <input class="auth-field" type="email" id="authEmail" placeholder="Email" autocomplete="email" aria-label="Email">
     <input class="auth-field" type="password" id="authPass" placeholder="Пароль" autocomplete="current-password" aria-label="Пароль">
-    <button class="auth-btn" id="authBtn" onclick="doLogin()">Войти</button>
+    <input class="auth-field auth-reg-only" type="password" id="authPass2" placeholder="Повторите пароль" autocomplete="new-password" aria-label="Повторите пароль">
+    <button class="auth-btn auth-login-only" id="authBtn" onclick="doLogin()">Войти</button>
+    <button class="auth-btn auth-reg-only" id="regBtn" onclick="doRegister()">Зарегистрироваться</button>
     <div class="auth-err" id="authErr" role="alert" aria-live="polite"></div>
+    <div class="auth-ok" id="authOk" role="status" aria-live="polite"></div>
+  </div>
+</div>
+
+<!-- ══════════ PENDING SCREEN ══════════ -->
+<div class="pending" id="pendingScreen">
+  <div class="pending-box">
+    <div class="p-ic" id="pendingIc"></div>
+    <h2>Аккаунт на проверке</h2>
+    <p>Твоя регистрация отправлена старшему администратору. Как только аккаунт будет подтверждён — ты сможешь войти в портал.</p>
+    <div class="p-email" id="pendingEmail"></div>
+    <button class="auth-btn" onclick="pendingLogout()" style="max-width:200px;margin:0 auto">Выйти</button>
   </div>
 </div>
 
@@ -339,7 +399,17 @@ select.field{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
     </div>
 
     <div class="sb-footer">
-      <div class="sb-user" id="fName">—</div>
+      <div class="sb-name-row">
+        <div class="sb-user" id="fName">—</div>
+        <button class="sb-edit" onclick="toggleProfileEdit()" title="Изменить имя" id="profileEditBtn"></button>
+      </div>
+      <div class="profile-edit" id="profileEdit">
+        <input class="field" type="text" id="profileName" placeholder="Новое имя" style="font-size:12px;padding:9px 12px">
+        <div class="btns" style="justify-content:flex-start">
+          <button class="btn btn-primary" onclick="saveProfile()" style="padding:7px 16px;font-size:11px">Сохранить</button>
+          <button class="btn btn-ghost" onclick="toggleProfileEdit()" style="padding:7px 12px;font-size:11px">Отмена</button>
+        </div>
+      </div>
       <div class="sb-sync"><span class="dot ld" id="sDot"></span><span id="sTxt">Подключение...</span></div>
       <div class="sb-logout" onclick="doLogout()" id="logoutBtn"></div>
     </div>
@@ -521,6 +591,8 @@ edit:'<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>',
 clock:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
 arrow:'<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
 link:'<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+usercheck:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/>',
+userx:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="17" y1="8" x2="22" y2="13"/><line x1="22" y1="8" x2="17" y2="13"/>',
 };
 function ic(name,size=18){return '<svg class="ic" width="'+size+'" height="'+size+'" viewBox="0 0 24 24">'+(IC[name]||'')+'</svg>'}
 
@@ -532,6 +604,8 @@ function initIcons(){
   document.getElementById('burgerBtn').innerHTML=ic('menu',22);
   document.getElementById('sbMark').innerHTML=ic('shield',20);
   document.getElementById('logoutBtn').innerHTML=ic('logout',14)+' Выйти';
+  document.getElementById('profileEditBtn').innerHTML=ic('edit',13);
+  document.getElementById('pendingIc').innerHTML=ic('clock',28);
   document.getElementById('ni_home').innerHTML=ic('home');
   document.getElementById('ni_book').innerHTML=ic('book');
   document.getElementById('ni_bell').innerHTML=ic('bell');
@@ -573,11 +647,21 @@ async function fbD(p){const r=await fetch(DB+'/'+p+'.json?auth='+token,{method:'
 /* ═══════════════════════════════════════════════
    AUTH
    ═══════════════════════════════════════════════ */
+let authIsReg=false;
+function authMode(mode){
+  authIsReg=mode==='reg';
+  document.getElementById('authBox').classList.toggle('reg-mode',authIsReg);
+  document.getElementById('tabLogin').classList.toggle('active',!authIsReg);
+  document.getElementById('tabReg').classList.toggle('active',authIsReg);
+  document.getElementById('authErr').textContent='';
+  document.getElementById('authOk').textContent='';
+}
+
 async function doLogin(){
   const email=document.getElementById('authEmail').value.trim();
   const pass=document.getElementById('authPass').value;
   const err=document.getElementById('authErr');
-  err.textContent='';
+  err.textContent='';document.getElementById('authOk').textContent='';
   if(!email||!pass){err.textContent='Заполни оба поля';return}
   document.getElementById('authBtn').disabled=true;
   try{
@@ -588,6 +672,7 @@ async function doLogin(){
     localStorage.setItem('kp_refresh',d.refreshToken);
     localStorage.setItem('kp_uid',d.localId);
     await loadProfile();
+    if(userRole==='pending'||userRole==='rejected'){showPending();return}
     showApp();
   }catch(e){
     const m=e.message;
@@ -597,8 +682,67 @@ async function doLogin(){
   }
   document.getElementById('authBtn').disabled=false;
 }
-document.getElementById('authPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
-document.getElementById('authEmail').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('authPass').focus()});
+
+async function doRegister(){
+  const name=document.getElementById('authName').value.trim();
+  const email=document.getElementById('authEmail').value.trim();
+  const pass=document.getElementById('authPass').value;
+  const pass2=document.getElementById('authPass2').value;
+  const err=document.getElementById('authErr');
+  const ok=document.getElementById('authOk');
+  err.textContent='';ok.textContent='';
+  if(!name||!email||!pass){err.textContent='Заполни все поля';return}
+  if(pass.length<6){err.textContent='Пароль минимум 6 символов';return}
+  if(pass!==pass2){err.textContent='Пароли не совпадают';return}
+  document.getElementById('regBtn').disabled=true;
+  try{
+    const r=await fetch(AUTH_URL+':signUp?key='+API_KEY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pass,returnSecureToken:true})});
+    const d=await r.json();
+    if(d.error)throw new Error(d.error.message);
+    const tempToken=d.idToken;
+    await fetch(DB+'/portal/users/'+d.localId+'.json?auth='+tempToken,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,role:'pending'})});
+    ok.textContent='Регистрация отправлена! Войди, когда администратор подтвердит аккаунт.';
+    document.getElementById('authName').value='';document.getElementById('authPass').value='';document.getElementById('authPass2').value='';
+    setTimeout(()=>authMode('login'),3000);
+  }catch(e){
+    let m=e.message;
+    if(m.includes('EMAIL_EXISTS'))m='Этот email уже зарегистрирован';
+    else if(m.includes('WEAK_PASSWORD'))m='Пароль слишком простой';
+    err.textContent=m;
+  }
+  document.getElementById('regBtn').disabled=false;
+}
+
+function showPending(){
+  document.getElementById('authScreen').classList.add('hidden');
+  document.getElementById('pendingScreen').classList.add('show');
+  document.getElementById('pendingEmail').textContent=userEmail;
+  const box=document.querySelector('.pending-box');
+  const picEl=document.getElementById('pendingIc');
+  if(userRole==='rejected'){
+    box.querySelector('h2').textContent='Аккаунт отклонён';
+    box.querySelector('p').textContent='Администратор отклонил твою заявку на регистрацию. Обратись к старшему для уточнения.';
+    picEl.style.background='var(--danger-s)';
+    picEl.innerHTML=ic('userx',28);
+    picEl.querySelector('svg').style.color='var(--danger)';
+  }else{
+    box.querySelector('h2').textContent='Аккаунт на проверке';
+    box.querySelector('p').textContent='Твоя регистрация отправлена старшему администратору. Как только аккаунт будет подтверждён — ты сможешь войти в портал.';
+    picEl.style.background='var(--orange-s)';
+    picEl.innerHTML=ic('clock',28);
+    picEl.querySelector('svg').style.color='var(--orange)';
+  }
+}
+function pendingLogout(){
+  document.getElementById('pendingScreen').classList.remove('show');
+  document.getElementById('authScreen').classList.remove('hidden');
+  doLogout();
+}
+
+document.getElementById('authPass').addEventListener('keydown',e=>{if(e.key==='Enter'){if(authIsReg)document.getElementById('authPass2').focus();else doLogin()}});
+document.getElementById('authEmail').addEventListener('keydown',e=>{if(e.key==='Enter'){if(authIsReg)document.getElementById('authPass').focus();else document.getElementById('authPass').focus()}});
+document.getElementById('authPass2').addEventListener('keydown',e=>{if(e.key==='Enter')doRegister()});
+document.getElementById('authName').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('authEmail').focus()});
 
 function doLogout(){
   token='';uid='';userName='';userEmail='';userRole='';
@@ -606,10 +750,36 @@ function doLogout(){
   localStorage.removeItem('kp_refresh');
   localStorage.removeItem('kp_uid');
   document.getElementById('app').classList.remove('show');
+  document.getElementById('pendingScreen').classList.remove('show');
   document.getElementById('authScreen').classList.remove('hidden');
   document.getElementById('authPass').value='';
   document.getElementById('authErr').textContent='';
+  document.getElementById('authOk').textContent='';
 }
+
+/* ═══════════════════════════════════════════════
+   PROFILE EDIT
+   ═══════════════════════════════════════════════ */
+function toggleProfileEdit(){
+  const el=document.getElementById('profileEdit');
+  const isOpen=el.classList.contains('show');
+  if(!isOpen)document.getElementById('profileName').value=userName;
+  el.classList.toggle('show');
+  if(!isOpen)document.getElementById('profileName').focus();
+}
+async function saveProfile(){
+  const newName=document.getElementById('profileName').value.trim();
+  if(!newName){toast('Введи имя','err');return}
+  try{
+    await fbP('portal/users/'+uid+'/name',newName);
+    userName=newName;
+    document.getElementById('fName').innerHTML=esc(userName)+(isSenior()?'<span class="role">старший</span>':'');
+    document.getElementById('profileEdit').classList.remove('show');
+    updateDashWelcome();
+    toast('Имя обновлено','ok');
+  }catch(e){toast('Ошибка сохранения','err')}
+}
+document.getElementById('profileName').addEventListener('keydown',e=>{if(e.key==='Enter')saveProfile();if(e.key==='Escape')toggleProfileEdit()});
 
 async function tryRestore(){
   const refresh=localStorage.getItem('kp_refresh');
@@ -668,7 +838,11 @@ function scheduleTokenRefresh(){
     if(savedUid)uid=savedUid;
     try{
       const profile=await fbG('portal/users/'+uid);
-      if(profile){userName=profile.name||'';userEmail=profile.email||'';userRole=profile.role||'admin';showApp();return}
+      if(profile){
+        userName=profile.name||'';userEmail=profile.email||'';userRole=profile.role||'admin';
+        if(userRole==='pending'||userRole==='rejected'){showPending();return}
+        showApp();return;
+      }
     }catch(e){}
   }
 })();
@@ -779,6 +953,7 @@ async function deleteHb(id){
 /* ═══════════════════════════════════════════════
    ANNOUNCEMENTS
    ═══════════════════════════════════════════════ */
+let editingAnnId=null;
 function renderAnns(){
   const el=document.getElementById('annList');
   if(!anns.length){el.innerHTML='<div class="empty">'+ic('bell',40)+'<p>Объявлений пока нет</p></div>';return}
@@ -786,8 +961,22 @@ function renderAnns(){
     const rd=a.readers?Object.keys(a.readers):[];
     const ok=rd.includes(userName);
     const dt=new Date(a.ts).toLocaleDateString('ru-RU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
-    return '<div class="ann '+(ok?'read':'unread')+'"><div class="ann-body"><div class="ann-meta"><span class="ann-who">'+esc(a.author)+'</span><span class="ann-when">'+dt+'</span></div><div class="ann-txt">'+esc(a.text)+'</div></div><div class="ann-ft"><span class="ann-rd">'+ic('eye',14)+' <b>'+rd.length+'</b>&nbsp;· '+(rd.length?rd.map(esc).join(', '):'—')+'</span><div class="ann-actions">'+(ok?'<span class="btn-ack d">'+ic('ok',14)+'</span>':'<button class="btn-ack u" onclick="ack(\''+a.id+'\')">Ознакомлен</button>')+(isSenior()?'<button class="btn-sm danger" onclick="delAnn(\''+a.id+'\')" style="margin-left:4px">'+ic('trash',12)+'</button>':'')+'</div></div></div>'
+    if(editingAnnId===a.id){
+      return '<div class="edit-box"><h3>'+ic('edit',14)+' Редактировать объявление</h3><textarea class="field" id="annEditIn" style="min-height:80px">'+esc(a.text)+'</textarea><div class="btns"><button class="btn btn-ghost" onclick="cancelEditAnn()">Отмена</button><button class="btn btn-primary" onclick="saveEditAnn(\''+a.id+'\')">Сохранить</button></div></div>';
+    }
+    return '<div class="ann '+(ok?'read':'unread')+'"><div class="ann-body"><div class="ann-meta"><span class="ann-who">'+esc(a.author)+'</span><span class="ann-when">'+dt+'</span></div><div class="ann-txt">'+esc(a.text)+'</div></div><div class="ann-ft"><span class="ann-rd">'+ic('eye',14)+' <b>'+rd.length+'</b>&nbsp;· '+(rd.length?rd.map(esc).join(', '):'—')+'</span><div class="ann-actions">'+(ok?'<span class="btn-ack d">'+ic('ok',14)+'</span>':'<button class="btn-ack u" onclick="ack(\''+a.id+'\')">Ознакомлен</button>')+(isSenior()?'<button class="btn-sm" onclick="startEditAnn(\''+a.id+'\')" style="margin-left:4px">'+ic('edit',12)+'</button><button class="btn-sm danger" onclick="delAnn(\''+a.id+'\')">'+ic('trash',12)+'</button>':'')+'</div></div></div>'
   }).join('');
+}
+function startEditAnn(id){editingAnnId=id;renderAnns()}
+function cancelEditAnn(){editingAnnId=null;renderAnns()}
+async function saveEditAnn(id){
+  const text=document.getElementById('annEditIn').value.trim();
+  if(!text){toast('Текст не может быть пустым','err');return}
+  try{
+    const a=anns.find(x=>x.id===id);
+    await fbP('portal/announcements/'+id,{...a,text});
+    editingAnnId=null;toast('Объявление обновлено','ok');await loadData();
+  }catch(e){toast('Ошибка','err')}
 }
 async function ack(id){try{await fbP('portal/announcements/'+id+'/readers/'+userName,true);const a=anns.find(x=>x.id===id);if(a){if(!a.readers)a.readers={};a.readers[userName]=true}renderAnns();updateDash();toast('Отмечено как прочитанное','ok')}catch(e){}}
 async function delAnn(id){if(!confirm('Удалить объявление?'))return;try{await fbD('portal/announcements/'+id);toast('Удалено','info');await loadData()}catch(e){toast('Ошибка','err')}}
@@ -797,6 +986,7 @@ document.getElementById('annIn').addEventListener('input',function(){document.ge
 /* ═══════════════════════════════════════════════
    INCIDENTS
    ═══════════════════════════════════════════════ */
+let editingIncId=null;
 function renderIncs(){
   const el=document.getElementById('incList');
   const q=(document.getElementById('incSearch').value||'').toLowerCase().trim();
@@ -806,8 +996,25 @@ function renderIncs(){
   el.innerHTML=filtered.map(i=>{
     const dt=new Date(i.ts).toLocaleDateString('ru-RU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     const sev=i.sev||'mid';const sl={high:'Высокий',mid:'Средний',low:'Низкий'}[sev];
-    return '<div class="inc"><div class="inc-head"><div><span class="sev '+sev+'">'+sl+'</span><div class="inc-title">'+esc(i.title||'—')+'</div></div>'+(isSenior()?'<button class="btn-sm danger" onclick="delInc(\''+i.id+'\')">'+ic('trash',12)+'</button>':'')+'</div>'+(i.desc?'<div class="inc-desc">'+esc(i.desc)+'</div>':'')+'<div class="inc-ft"><span>'+esc(i.author)+' → '+esc(i.who||'—')+'</span><span>'+dt+'</span></div></div>'
+    if(editingIncId===i.id){
+      return '<div class="edit-box"><h3>'+ic('edit',14)+' Редактировать инцидент</h3><div class="row"><select class="field" id="incEditSev"><option value="low"'+(sev==='low'?' selected':'')+'>Низкий</option><option value="mid"'+(sev==='mid'?' selected':'')+'>Средний</option><option value="high"'+(sev==='high'?' selected':'')+'>Высокий</option></select><input class="field" type="text" id="incEditWho" value="'+esc(i.who||'')+'" placeholder="Кто допустил"></div><input class="field mb8" type="text" id="incEditTitle" value="'+esc(i.title||'')+'" placeholder="Краткое описание"><textarea class="field" id="incEditDesc" placeholder="Подробности...">'+esc(i.desc||'')+'</textarea><div class="btns"><button class="btn btn-ghost" onclick="cancelEditInc()">Отмена</button><button class="btn btn-primary" onclick="saveEditInc(\''+i.id+'\')">Сохранить</button></div></div>';
+    }
+    return '<div class="inc"><div class="inc-head"><div><span class="sev '+sev+'">'+sl+'</span><div class="inc-title">'+esc(i.title||'—')+'</div></div>'+(isSenior()?'<div class="staff-actions"><button class="btn-sm" onclick="startEditInc(\''+i.id+'\')">'+ic('edit',12)+'</button><button class="btn-sm danger" onclick="delInc(\''+i.id+'\')">'+ic('trash',12)+'</button></div>':'')+'</div>'+(i.desc?'<div class="inc-desc">'+esc(i.desc)+'</div>':'')+'<div class="inc-ft"><span>'+esc(i.author)+' → '+esc(i.who||'—')+'</span><span>'+dt+'</span></div></div>'
   }).join('');
+}
+function startEditInc(id){editingIncId=id;renderIncs()}
+function cancelEditInc(){editingIncId=null;renderIncs()}
+async function saveEditInc(id){
+  const title=document.getElementById('incEditTitle').value.trim();
+  if(!title){toast('Описание не может быть пустым','err');return}
+  const sev=document.getElementById('incEditSev').value;
+  const who=document.getElementById('incEditWho').value.trim();
+  const desc=document.getElementById('incEditDesc').value.trim();
+  try{
+    const i=incs.find(x=>x.id===id);
+    await fbP('portal/incidents/'+id,{...i,title,sev,who,desc});
+    editingIncId=null;toast('Инцидент обновлён','ok');await loadData();
+  }catch(e){toast('Ошибка','err')}
 }
 async function delInc(id){if(!confirm('Удалить инцидент?'))return;try{await fbD('portal/incidents/'+id);toast('Удалено','info');await loadData()}catch(e){toast('Ошибка','err')}}
 async function postInc(){if(!isSenior())return;const sev=document.getElementById('incSev').value;const who=document.getElementById('incWho').value.trim();const title=document.getElementById('incTitle').value.trim();const desc=document.getElementById('incDesc').value.trim();if(!title)return;const id='i_'+Date.now();try{await fbP('portal/incidents/'+id,{id,sev,who,title,desc,author:userName,ts:Date.now()});document.getElementById('incWho').value='';document.getElementById('incTitle').value='';document.getElementById('incDesc').value='';document.getElementById('incBtn').disabled=true;toast('Инцидент записан','ok');await loadData()}catch(e){toast('Ошибка','err')}}
@@ -843,9 +1050,33 @@ async function loadStaff(){
   try{
     const d=await fbG('portal/users');const el=document.getElementById('staffList');
     if(!d){el.innerHTML='<div class="empty">'+ic('users',40)+'<p>Сотрудников пока нет</p></div>';return}
-    const users=Object.values(d);
-    el.innerHTML=users.map(u=>'<div class="staff-card"><div class="staff-info"><span class="staff-name">'+esc(u.name)+'</span><span class="staff-email">'+esc(u.email)+'</span></div><span class="staff-role '+(u.role==='senior'?'senior':'admin')+'">'+(u.role==='senior'?'Старший':'Админ')+'</span></div>').join('');
+    const all=Object.entries(d);
+    const pending=all.filter(([k,u])=>u.role==='pending');
+    const active=all.filter(([k,u])=>u.role!=='pending');
+    let html='';
+    if(pending.length){
+      html+='<div class="st-section">'+ic('clock',14)+' Ожидают верификации ('+pending.length+')</div>';
+      html+=pending.map(([uid,u])=>'<div class="staff-card is-pending"><div class="staff-info"><span class="staff-name">'+esc(u.name)+'</span><span class="staff-email">'+esc(u.email)+'</span></div><div class="staff-actions"><button class="btn-sm" onclick="approveUser(\''+uid+'\')" style="color:var(--green);border-color:rgba(74,222,128,.2)">'+ic('usercheck',12)+' Принять</button><button class="btn-sm danger" onclick="rejectUser(\''+uid+'\')">'+ic('userx',12)+' Отклонить</button></div></div>').join('');
+    }
+    if(active.length){
+      html+='<div class="st-section">'+ic('users',14)+' Активные сотрудники ('+active.length+')</div>';
+      html+=active.map(([uid,u])=>'<div class="staff-card"><div class="staff-info"><span class="staff-name">'+esc(u.name)+'</span><span class="staff-email">'+esc(u.email)+'</span></div><span class="staff-role '+(u.role==='senior'?'senior':'admin')+'">'+(u.role==='senior'?'Старший':'Админ')+'</span></div>').join('');
+    }
+    el.innerHTML=html||'<div class="empty">'+ic('users',40)+'<p>Сотрудников пока нет</p></div>';
   }catch(e){}
+}
+async function approveUser(id){
+  try{
+    await fbP('portal/users/'+id+'/role','admin');
+    toast('Сотрудник подтверждён','ok');loadStaff();
+  }catch(e){toast('Ошибка','err')}
+}
+async function rejectUser(id){
+  if(!confirm('Отклонить этого сотрудника? Он не сможет войти.'))return;
+  try{
+    await fbP('portal/users/'+id+'/role','rejected');
+    toast('Сотрудник отклонён','info');loadStaff();
+  }catch(e){toast('Ошибка','err')}
 }
 
 /* ═══════════════════════════════════════════════
@@ -866,6 +1097,22 @@ function updateDash(){
     '<div class="d-card" onclick="go(\'checklists\')"><div class="d-ic green">'+ic('check',28)+'</div><div class="d-val">'+ic('arrow',22)+'</div><div class="d-lbl">Чек-листы</div></div>';
   const b=document.getElementById('ubadge');
   if(unread>0){b.style.display='';b.textContent=unread}else b.style.display='none';
+  if(isSenior())checkPendingBadge();
+}
+async function checkPendingBadge(){
+  try{
+    const d=await fbG('portal/users');
+    if(!d)return;
+    const pendingCount=Object.values(d).filter(u=>u.role==='pending').length;
+    let badge=document.getElementById('staffBadge');
+    if(!badge){
+      const nav=document.getElementById('staffNav');
+      if(!nav)return;
+      badge=document.createElement('span');badge.className='sb-badge';badge.id='staffBadge';badge.style.background='var(--orange-s)';badge.style.color='var(--orange)';
+      nav.appendChild(badge);
+    }
+    if(pendingCount>0){badge.style.display='';badge.textContent=pendingCount}else{badge.style.display='none'}
+  }catch(e){}
 }
 
 /* ═══════════════════════════════════════════════

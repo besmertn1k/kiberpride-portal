@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>КиберPride — Портал</title>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#050510;--navy:#0a1628;--navy2:#0d1f3c;--navy3:#122a4e;--surface:#0c1a30;--card:#0e1e3a;--border:rgba(50,90,160,.2);--border-h:rgba(50,90,160,.35);--accent:#3b8bff;--accent-dim:rgba(59,139,255,.12);--orange:#e87820;--orange-dim:rgba(232,120,32,.1);--warn:#ff4444;--warn-dim:rgba(255,68,68,.1);--green:#22c55e;--green-dim:rgba(34,197,94,.1);--yellow:#eab308;--white:#e8ecf4;--text:#9aa8c0;--muted:#5a6a82;--sidebar-w:230px}
+body{background:var(--bg);color:var(--text);font-family:'Exo 2',sans-serif;min-height:100vh}
+::selection{background:var(--accent);color:#fff}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--navy3);border-radius:3px}
+
+/* AUTH SCREEN */
+.auth-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.auth-screen.hidden{display:none}
+.auth-box{background:var(--navy);border:1px solid var(--border);border-radius:16px;padding:36px;max-width:380px;width:100%;text-align:center}
+.auth-box .mark{width:56px;height:56px;border-radius:13px;background:linear-gradient(135deg,var(--navy3),var(--accent));display:inline-grid;place-items:center;font-weight:900;font-size:19px;color:#fff;letter-spacing:2px;margin-bottom:14px;box-shadow:0 4px 20px rgba(59,139,255,.2)}
+.auth-box h1{font-size:20px;color:var(--white);margin-bottom:4px;font-weight:800;letter-spacing:2px}
+.auth-box h1 .o{color:var(--orange)}
+.auth-box .sub{font-size:12px;color:var(--muted);margin-bottom:24px}
+.auth-field{width:100%;padding:11px 14px;border-radius:9px;border:1px solid var(--border);background:var(--card);color:var(--white);font-family:inherit;font-size:13.5px;outline:none;margin-bottom:10px;transition:border-color .2s}
+.auth-field:focus{border-color:var(--accent)}
+.auth-field::placeholder{color:var(--muted)}
+.auth-btn{width:100%;padding:12px;border-radius:9px;background:var(--accent);color:#fff;font-family:inherit;font-weight:700;font-size:13px;border:none;cursor:pointer;letter-spacing:.5px;transition:opacity .2s;margin-top:6px}
+.auth-btn:hover{opacity:.85}
+.auth-btn:disabled{opacity:.4;cursor:not-allowed}
+.auth-err{color:var(--warn);font-size:11.5px;margin-top:10px;min-height:16px}
+.auth-loading{color:var(--accent);font-size:12px;margin-top:10px}
+
+/* APP (hidden until login) */
+.app{display:none;min-height:100vh}
+.app.show{display:flex}
+
+/* SIDEBAR */
+.sidebar{width:var(--sidebar-w);min-height:100vh;background:var(--navy);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;transition:transform .3s}
+.sb-logo{display:flex;align-items:center;gap:11px;padding:18px 20px 18px;margin-bottom:4px}
+.sb-logo-mark{width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,var(--navy3),var(--accent));display:grid;place-items:center;font-weight:900;font-size:13px;color:#fff;letter-spacing:1px;flex-shrink:0;box-shadow:0 2px 12px rgba(59,139,255,.2)}
+.sb-logo-text{font-weight:800;font-size:15px;color:var(--white);letter-spacing:2px}
+.sb-logo-text .o{color:var(--orange)}
+.sb-section{padding:8px 20px 4px;font-size:9px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted)}
+.sb-divider{height:1px;background:var(--border);margin:8px 16px}
+.sb-item{display:flex;align-items:center;gap:10px;padding:9px 20px;cursor:pointer;font-size:12.5px;font-weight:600;color:var(--muted);transition:all .15s;border-left:2.5px solid transparent;border-bottom:1px solid var(--border);-webkit-tap-highlight-color:transparent}
+.sb-item:hover{background:rgba(59,139,255,.04);color:var(--text)}
+.sb-item.active{color:var(--white);background:rgba(59,139,255,.08);border-left-color:var(--accent)}
+.sb-item.disabled{opacity:.3;cursor:default;pointer-events:none}
+.sb-icon{font-size:15px;width:20px;text-align:center;flex-shrink:0}
+.sb-badge{margin-left:auto;min-width:18px;height:17px;line-height:17px;border-radius:9px;font-size:9px;font-weight:800;text-align:center;padding:0 5px;background:var(--warn-dim);color:var(--warn)}
+.sb-footer{margin-top:auto;padding:14px 20px;border-top:1px solid var(--border)}
+.sb-user{color:var(--accent);font-weight:700;font-size:12px}
+.sb-user .role{font-weight:400;font-size:10px;color:var(--orange);margin-left:6px}
+.sb-sync{display:flex;align-items:center;gap:5px;margin-top:5px;font-size:10px;color:var(--muted)}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.dot.on{background:var(--green);box-shadow:0 0 6px rgba(34,197,94,.4)}.dot.off{background:var(--warn)}.dot.ld{background:var(--orange);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.sb-logout{margin-top:8px;font-size:10px;color:var(--muted);cursor:pointer;text-decoration:underline}
+.sb-logout:hover{color:var(--warn)}
+
+/* MAIN */
+.main{flex:1;margin-left:var(--sidebar-w);padding:28px 36px 60px;min-height:100vh}
+.mob-head{display:none;position:fixed;top:0;left:0;right:0;z-index:90;background:var(--navy);border-bottom:1px solid var(--border);padding:10px 16px;align-items:center;gap:10px}
+.burger{font-size:20px;color:var(--white);cursor:pointer;border:none;background:none;padding:4px}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99}.overlay.show{display:block}
+@media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.mob-head{display:flex}.main{margin-left:0;padding:64px 16px 60px}:root{--sidebar-w:260px}}
+
+.pg-title{font-weight:800;font-size:21px;color:var(--white);margin-bottom:3px;display:flex;align-items:center;gap:10px}.pg-title .ic{font-size:22px}
+.pg-sub{font-size:12.5px;color:var(--muted);margin-bottom:22px}
+.panel{max-width:780px;display:none}.panel.active{display:block}
+
+/* DASH */
+.dash{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:20px}
+.d-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center;cursor:pointer;transition:all .2s}
+.d-card:hover{border-color:var(--border-h);transform:translateY(-2px);box-shadow:0 4px 20px rgba(0,0,0,.3)}
+.d-ic{font-size:28px;margin-bottom:6px}.d-val{font-size:26px;font-weight:800;color:var(--white)}.d-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:3px}
+
+/* CARDS */
+.i-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:12px;transition:border-color .2s}
+.i-card:hover{border-color:var(--border-h)}.i-card h3{font-size:13.5px;font-weight:700;color:var(--white);margin-bottom:6px;display:flex;align-items:center;gap:8px}.i-card p{font-size:13px;line-height:1.7}
+.cdot{width:7px;height:7px;border-radius:2px;flex-shrink:0}
+
+/* ANN */
+.ann{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:12px}.ann:hover{border-color:var(--border-h)}
+.ann.unread{border-left:3px solid var(--orange)}.ann.read{border-left:3px solid var(--green);opacity:.85}
+.ann-body{padding:16px 18px 12px}.ann-meta{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.ann-who{font-size:11.5px;font-weight:700;color:var(--accent)}.ann-when{font-size:10.5px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+.ann-txt{font-size:13.5px;line-height:1.7;white-space:pre-wrap}
+.ann-ft{padding:8px 18px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px}
+.ann-rd{font-size:10.5px;color:var(--muted)}.ann-rd b{color:var(--green);font-weight:700}
+.btn-ack{padding:5px 14px;border-radius:6px;font-family:inherit;font-weight:700;font-size:10.5px;cursor:pointer;border:none;transition:all .2s}
+.btn-ack.u{background:var(--green-dim);color:var(--green);border:1px solid rgba(34,197,94,.2)}.btn-ack.u:hover{background:rgba(34,197,94,.18)}
+.btn-ack.d{background:transparent;color:var(--green);border:1px solid transparent;cursor:default}
+
+.add-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:20px}
+.add-box h3{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px}
+.add-box textarea,.add-box select,.add-box input[type=text],.add-box input[type=email],.add-box input[type=password]{width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--white);font-family:inherit;font-size:13px;resize:vertical;outline:none}
+.add-box textarea:focus,.add-box select:focus,.add-box input:focus{border-color:var(--accent)}
+.add-box textarea{min-height:70px}
+.add-btns{display:flex;justify-content:flex-end;margin-top:8px}
+.btn-pub{padding:9px 22px;border-radius:8px;font-family:inherit;font-weight:700;font-size:11.5px;letter-spacing:.5px;cursor:pointer;border:none;background:var(--accent);color:#fff;text-transform:uppercase;transition:opacity .2s}
+.btn-pub:hover{opacity:.85}.btn-pub:disabled{opacity:.3;cursor:not-allowed}
+
+/* INC */
+.inc{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:12px}.inc:hover{border-color:var(--border-h)}
+.inc-head{padding:14px 18px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+.inc-sev{display:inline-block;padding:2px 8px;border-radius:4px;font-size:9px;font-weight:800;letter-spacing:.5px;text-transform:uppercase}
+.inc-sev.high{background:var(--warn-dim);color:var(--warn)}.inc-sev.mid{background:var(--orange-dim);color:var(--orange)}.inc-sev.low{background:var(--accent-dim);color:var(--accent)}
+.inc-title{font-size:13.5px;font-weight:700;color:var(--white);margin-top:4px}
+.inc-desc{padding:0 18px 14px;font-size:13px;line-height:1.7}
+.inc-ft{padding:8px 18px;border-top:1px solid var(--border);display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;font-size:10.5px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+
+.add-row{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}.add-row>*{flex:1;min-width:120px}
+.add-row select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%235a6a82'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+
+.empty-state{text-align:center;padding:50px 20px;color:var(--muted)}.empty-state .e-ic{font-size:40px;margin-bottom:10px;opacity:.25}
+
+.link-card{cursor:pointer}.link-card .go{color:var(--accent);font-weight:600;font-size:12px;margin-top:4px;display:inline-block}
+
+/* STAFF */
+.staff-card{display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:8px}
+.staff-info{display:flex;flex-direction:column;gap:2px}
+.staff-name{font-size:13px;font-weight:700;color:var(--white)}
+.staff-email{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+.staff-role{font-size:10px;color:var(--orange);font-weight:600}
+.msg-ok{color:var(--green);font-size:12px;margin-top:8px}
+.msg-err{color:var(--warn);font-size:12px;margin-top:8px}
+
+@media print{.sidebar,.mob-head,.add-box,.btn-ack,.overlay,.auth-screen{display:none!important}.main{margin-left:0}body{background:#fff;color:#222}.i-card,.ann,.inc{border-color:#ccc;background:#fff}.i-card h3,.pg-title,.ann-who,.inc-title{color:#111}}
+</style>
+</head>
+<body>
+
+<!-- AUTH SCREEN -->
+<div class="auth-screen" id="authScreen">
+  <div class="auth-box">
+    <div class="mark">KP</div>
+    <h1>Кибер<span class="o">Pride</span></h1>
+    <div class="sub">Портал сотрудников · Вход</div>
+    <input class="auth-field" type="email" id="authEmail" placeholder="Email" autocomplete="email">
+    <input class="auth-field" type="password" id="authPass" placeholder="Пароль" autocomplete="current-password">
+    <button class="auth-btn" id="authBtn" onclick="doLogin()">Войти</button>
+    <div class="auth-err" id="authErr"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app" id="app">
+  <div class="mob-head"><button class="burger" onclick="toggleSB()">☰</button><span style="width:26px;height:26px;border-radius:6px;background:linear-gradient(135deg,#122a4e,#3b8bff);display:inline-grid;place-items:center;font-weight:900;font-size:9px;color:#fff;flex-shrink:0">KP</span><span style="font-weight:800;font-size:13px;color:var(--white);letter-spacing:2px">Кибер<span style="color:var(--orange)">Pride</span></span></div>
+  <div class="overlay" id="ov" onclick="toggleSB()"></div>
+
+  <nav class="sidebar" id="sb">
+    <div class="sb-logo"><div class="sb-logo-mark">KP</div><span class="sb-logo-text">Кибер<span class="o">Pride</span></span></div>
+    <div class="sb-item active" data-p="dash" onclick="go('dash')"><span class="sb-icon">🏠</span>Главная</div>
+    <div class="sb-divider"></div>
+    <div class="sb-section">Информация</div>
+    <div class="sb-item" data-p="handbook" onclick="go('handbook')"><span class="sb-icon">📋</span>Памятка</div>
+    <div class="sb-item" data-p="important" onclick="go('important')"><span class="sb-icon">⚠️</span>Важное<span class="sb-badge" id="ubadge" style="display:none">0</span></div>
+    <div class="sb-divider"></div>
+    <div class="sb-section">Инструменты</div>
+    <div class="sb-item" data-p="incidents" onclick="go('incidents')"><span class="sb-icon">📝</span>Журнал</div>
+    <div class="sb-item" data-p="checklists" onclick="go('checklists')"><span class="sb-icon">✅</span>Чек-листы</div>
+    <div class="sb-item" data-p="staff" onclick="go('staff')" id="staffNav" style="display:none"><span class="sb-icon">👥</span>Сотрудники</div>
+    <div class="sb-item disabled"><span class="sb-icon">📊</span>Аудиты</div>
+    <div class="sb-item disabled"><span class="sb-icon">💰</span>Зарплата</div>
+    <div class="sb-item disabled"><span class="sb-icon">📅</span>Расписание</div>
+    <div class="sb-footer">
+      <div class="sb-user" id="fName">—</div>
+      <div class="sb-sync"><span class="dot ld" id="sDot"></span><span id="sTxt">Подключение...</span></div>
+      <div class="sb-logout" onclick="doLogout()">Выйти</div>
+    </div>
+  </nav>
+
+  <div class="main">
+    <!-- DASH -->
+    <div class="panel active" id="p-dash">
+      <div class="pg-title"><span class="ic">🏠</span>Главная</div>
+      <div class="pg-sub">Панель управления</div>
+      <div class="dash">
+        <div class="d-card" onclick="go('important')"><div class="d-ic">⚠️</div><div class="d-val" id="dU">0</div><div class="d-lbl">Непрочитанных</div></div>
+        <div class="d-card" onclick="go('incidents')"><div class="d-ic">📝</div><div class="d-val" id="dI">0</div><div class="d-lbl">Инцидентов</div></div>
+        <div class="d-card" onclick="go('handbook')"><div class="d-ic">📋</div><div class="d-val">6</div><div class="d-lbl">Правил</div></div>
+        <div class="d-card" onclick="go('checklists')"><div class="d-ic">✅</div><div class="d-val">→</div><div class="d-lbl">Чек-листы</div></div>
+      </div>
+    </div>
+    <!-- HANDBOOK -->
+    <div class="panel" id="p-handbook">
+      <div class="pg-title"><span class="ic">📋</span>Памятка</div><div class="pg-sub">Основные правила работы</div>
+      <div class="i-card"><h3><span class="cdot" style="background:var(--accent)"></span>Стойка администрации</h3><p>Никакого скопления людей на стойке. Касается и клиентов, и админов. Услуга оказана — клиент проходит к игровому месту.</p></div>
+      <div class="i-card"><h3><span class="cdot" style="background:#8b5cf6"></span>Уборка рабочих мест</h3><p>Убирать тщательно, а не показательно для мониторинга. Наушники протирать сбоку — панельки с логотипом (левая и правая стороны).</p></div>
+      <div class="i-card"><h3><span class="cdot" style="background:var(--orange)"></span>Контроль ПС-зон</h3><p>Следить за пересиживанием клиентов в PlayStation зонах. Отчёты о закрытии смены — основной спектр штрафов.</p></div>
+      <div class="i-card"><h3><span class="cdot" style="background:var(--green)"></span>Home VIP зона</h3><p>При входе в ХВ — снимать обувь (включая кроксы). Держите отдельную пару тапок у входа.</p></div>
+      <div class="i-card"><h3><span class="cdot" style="background:var(--warn)"></span>Продажа товара</h3><p>Не продавать товар без принятой накладной. Галочку ставить в чате накладных.</p></div>
+      <div class="i-card"><h3><span class="cdot" style="background:var(--yellow)"></span>Генеральная уборка</h3><p>Чистка клавиатур и периферии — до дня ген. уборки. Используйте онлайн чек-лист.</p></div>
+    </div>
+    <!-- IMPORTANT -->
+    <div class="panel" id="p-important">
+      <div class="pg-title"><span class="ic">⚠️</span>Важное</div><div class="pg-sub">Объявления от старших</div>
+      <div class="add-box" id="annAdd" style="display:none"><h3>Новое объявление</h3><textarea id="annIn" placeholder="Текст объявления..."></textarea><div class="add-btns"><button class="btn-pub" id="annBtn" onclick="postAnn()" disabled>Опубликовать</button></div></div>
+      <div id="annList"></div>
+    </div>
+    <!-- INCIDENTS -->
+    <div class="panel" id="p-incidents">
+      <div class="pg-title"><span class="ic">📝</span>Журнал инцидентов</div><div class="pg-sub">Замечания, нарушения, происшествия</div>
+      <div class="add-box" id="incAdd" style="display:none"><h3>Новый инцидент</h3><div class="add-row"><select id="incSev"><option value="low">Низкий</option><option value="mid" selected>Средний</option><option value="high">Высокий</option></select><input type="text" id="incWho" placeholder="Кто допустил"></div><input type="text" id="incTitle" placeholder="Краткое описание" style="margin-bottom:8px"><textarea id="incDesc" placeholder="Подробности..."></textarea><div class="add-btns"><button class="btn-pub" id="incBtn" onclick="postInc()" disabled>Записать</button></div></div>
+      <div id="incList"></div>
+    </div>
+    <!-- CHECKLISTS -->
+    <div class="panel" id="p-checklists">
+      <div class="pg-title"><span class="ic">✅</span>Чек-листы</div><div class="pg-sub">Активные чек-листы</div>
+      <div class="i-card link-card" onclick="window.open('https://besmertn1k.github.io/checklist/','_blank')"><h3><span class="cdot" style="background:var(--green)"></span>Чистка клавиатур (60 шт.)</h3><p>Онлайн чек-лист с синхронизацией.</p><span class="go">→ Открыть</span></div>
+      <div class="i-card" style="opacity:.35"><h3><span class="cdot" style="background:var(--muted)"></span>Чек-лист смены</h3><p>Скоро</p></div>
+    </div>
+    <!-- STAFF (senior only) -->
+    <div class="panel" id="p-staff">
+      <div class="pg-title"><span class="ic">👥</span>Сотрудники</div><div class="pg-sub">Управление аккаунтами</div>
+      <div class="add-box"><h3>Создать аккаунт</h3>
+        <input type="text" id="newName" placeholder="Имя (например: Ярик)" style="margin-bottom:8px">
+        <input type="email" id="newEmail" placeholder="Email" style="margin-bottom:8px">
+        <input type="password" id="newPass" placeholder="Пароль (мин. 6 символов)" style="margin-bottom:8px">
+        <div class="add-row"><select id="newRole"><option value="admin">Админ</option><option value="senior">Старший</option></select></div>
+        <div class="add-btns"><button class="btn-pub" onclick="createUser()">Создать</button></div>
+        <div id="staffMsg"></div>
+      </div>
+      <div id="staffList"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══ CONFIG ═══
+const API_KEY='AIzaSyBZXagt1ecI6lUv2Z4Lxi_QPhHksrn1Vnc';
+const DB='https://kiberpride-keyboard-default-rtdb.europe-west1.firebasedatabase.app';
+const AUTH_URL='https://identitytoolkit.googleapis.com/v1/accounts';
+const SENIOR_EMAIL='smertnikflow@gmail.com';
+
+let token='',uid='',userName='',userEmail='',userRole='',refreshTimer=null;
+
+// ═══ FIREBASE REST ═══
+async function fbG(p){const r=await fetch(DB+'/'+p+'.json?auth='+token);if(!r.ok)throw new Error(r.status);return r.json()}
+async function fbP(p,d){const r=await fetch(DB+'/'+p+'.json?auth='+token,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});if(!r.ok)throw new Error(r.status)}
+
+// ═══ AUTH ═══
+async function doLogin(){
+  const email=document.getElementById('authEmail').value.trim();
+  const pass=document.getElementById('authPass').value;
+  const err=document.getElementById('authErr');
+  err.textContent='';
+  if(!email||!pass){err.textContent='Заполни оба поля';return}
+  document.getElementById('authBtn').disabled=true;
+  try{
+    const r=await fetch(AUTH_URL+':signInWithPassword?key='+API_KEY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pass,returnSecureToken:true})});
+    const d=await r.json();
+    if(d.error){throw new Error(d.error.message)}
+    token=d.idToken;uid=d.localId;userEmail=d.email;
+    await loadProfile();
+    showApp();
+  }catch(e){
+    const msg=e.message;
+    if(msg.includes('EMAIL_NOT_FOUND'))err.textContent='Аккаунт не найден';
+    else if(msg.includes('INVALID_PASSWORD')||msg.includes('INVALID_LOGIN_CREDENTIALS'))err.textContent='Неверный пароль';
+    else err.textContent='Ошибка: '+msg;
+  }
+  document.getElementById('authBtn').disabled=false;
+}
+document.getElementById('authPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+document.getElementById('authEmail').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('authPass').focus()});
+
+function doLogout(){token='';uid='';userName='';userEmail='';userRole='';clearInterval(refreshTimer);document.getElementById('app').classList.remove('show');document.getElementById('authScreen').classList.remove('hidden');document.getElementById('authPass').value='';document.getElementById('authErr').textContent=''}
+
+async function loadProfile(){
+  try{
+    const profile=await fbG('portal/users/'+uid);
+    if(profile){userName=profile.name||'';userRole=profile.role||'admin'}
+    else{userName=userEmail.split('@')[0];userRole=userEmail.toLowerCase()===SENIOR_EMAIL?'senior':'admin';await fbP('portal/users/'+uid,{name:userName,email:userEmail,role:userRole})}
+  }catch(e){userName=userEmail.split('@')[0];userRole=userEmail.toLowerCase()===SENIOR_EMAIL?'senior':'admin'}
+}
+
+function isSenior(){return userRole==='senior'}
+
+function showApp(){
+  document.getElementById('authScreen').classList.add('hidden');
+  document.getElementById('app').classList.add('show');
+  document.getElementById('fName').innerHTML=esc(userName)+(isSenior()?'<span class="role">· старший</span>':'');
+  if(isSenior()){document.getElementById('annAdd').style.display='';document.getElementById('incAdd').style.display='';document.getElementById('staffNav').style.display=''}
+  loadData();
+  refreshTimer=setInterval(loadData,15000);
+}
+
+// ═══ NAV ═══
+function go(p){document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.sb-item[data-p]').forEach(x=>x.classList.remove('active'));const el=document.getElementById('p-'+p);if(el)el.classList.add('active');const nav=document.querySelector('.sb-item[data-p="'+p+'"]');if(nav)nav.classList.add('active');document.getElementById('sb').classList.remove('open');document.getElementById('ov').classList.remove('show');if(p==='staff'&&isSenior())loadStaff()}
+function toggleSB(){document.getElementById('sb').classList.toggle('open');document.getElementById('ov').classList.toggle('show')}
+
+// ═══ DATA ═══
+let anns=[],incs=[];
+function sync(s,t){document.getElementById('sDot').className='dot '+s;document.getElementById('sTxt').textContent=t}
+
+async function loadData(){
+  sync('ld','Загрузка...');
+  try{
+    const d=await fbG('portal/announcements');anns=d?Object.values(d).sort((a,b)=>b.ts-a.ts):[];
+    const d2=await fbG('portal/incidents');incs=d2?Object.values(d2).sort((a,b)=>b.ts-a.ts):[];
+    sync('on','Онлайн · '+new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}));
+  }catch(e){sync('off','Ошибка загрузки')}
+  renderAnns();renderIncs();updateDash();
+}
+
+// ═══ ANNOUNCEMENTS ═══
+function renderAnns(){
+  const el=document.getElementById('annList');
+  if(!anns.length){el.innerHTML='<div class="empty-state"><div class="e-ic">📭</div><p>Объявлений пока нет</p></div>';return}
+  el.innerHTML=anns.map(a=>{const rd=a.readers?Object.keys(a.readers):[];const ok=rd.includes(userName);const dt=new Date(a.ts).toLocaleDateString('ru-RU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});return '<div class="ann '+(ok?'read':'unread')+'"><div class="ann-body"><div class="ann-meta"><span class="ann-who">'+esc(a.author)+'</span><span class="ann-when">'+dt+'</span></div><div class="ann-txt">'+esc(a.text)+'</div></div><div class="ann-ft"><span class="ann-rd">Прочитали: <b>'+rd.length+'</b> · '+(rd.length?rd.map(esc).join(', '):'—')+'</span>'+(ok?'<span class="btn-ack d">✓</span>':'<button class="btn-ack u" onclick="ack(\''+a.id+'\')">Ознакомлен</button>')+'</div></div>'}).join('')}
+
+async function ack(id){try{await fbP('portal/announcements/'+id+'/readers/'+userName,true);const a=anns.find(x=>x.id===id);if(a){if(!a.readers)a.readers={};a.readers[userName]=true}renderAnns();updateDash()}catch(e){}}
+
+async function postAnn(){const t=document.getElementById('annIn').value.trim();if(!t||!isSenior())return;const id='a_'+Date.now();try{await fbP('portal/announcements/'+id,{id,text:t,author:userName,ts:Date.now(),readers:{}});document.getElementById('annIn').value='';document.getElementById('annBtn').disabled=true;await loadData()}catch(e){alert('Ошибка')}}
+document.getElementById('annIn').addEventListener('input',function(){document.getElementById('annBtn').disabled=!this.value.trim()});
+document.getElementById('annIn').addEventListener('keyup',function(){document.getElementById('annBtn').disabled=!this.value.trim()});
+
+// ═══ INCIDENTS ═══
+function renderIncs(){const el=document.getElementById('incList');if(!incs.length){el.innerHTML='<div class="empty-state"><div class="e-ic">📝</div><p>Инцидентов пока нет</p></div>';return}el.innerHTML=incs.map(i=>{const dt=new Date(i.ts).toLocaleDateString('ru-RU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});const sev=i.sev||'mid';const sl={high:'Высокий',mid:'Средний',low:'Низкий'}[sev];return '<div class="inc"><div class="inc-head"><div><span class="inc-sev '+sev+'">'+sl+'</span><div class="inc-title">'+esc(i.title||'—')+'</div></div></div>'+(i.desc?'<div class="inc-desc">'+esc(i.desc)+'</div>':'')+'<div class="inc-ft"><span>'+esc(i.author)+' → '+esc(i.who||'—')+'</span><span>'+dt+'</span></div></div>'}).join('')}
+
+async function postInc(){if(!isSenior())return;const sev=document.getElementById('incSev').value;const who=document.getElementById('incWho').value.trim();const title=document.getElementById('incTitle').value.trim();const desc=document.getElementById('incDesc').value.trim();if(!title)return;const id='i_'+Date.now();try{await fbP('portal/incidents/'+id,{id,sev,who,title,desc,author:userName,ts:Date.now()});document.getElementById('incWho').value='';document.getElementById('incTitle').value='';document.getElementById('incDesc').value='';document.getElementById('incBtn').disabled=true;await loadData()}catch(e){alert('Ошибка')}}
+document.getElementById('incTitle').addEventListener('input',function(){document.getElementById('incBtn').disabled=!this.value.trim()});
+document.getElementById('incTitle').addEventListener('keyup',function(){document.getElementById('incBtn').disabled=!this.value.trim()});
+
+// ═══ STAFF ═══
+async function createUser(){
+  const name=document.getElementById('newName').value.trim();
+  const email=document.getElementById('newEmail').value.trim();
+  const pass=document.getElementById('newPass').value;
+  const role=document.getElementById('newRole').value;
+  const msg=document.getElementById('staffMsg');
+  msg.innerHTML='';
+  if(!name||!email||!pass){msg.innerHTML='<div class="msg-err">Заполни все поля</div>';return}
+  if(pass.length<6){msg.innerHTML='<div class="msg-err">Пароль минимум 6 символов</div>';return}
+  try{
+    const r=await fetch(AUTH_URL+':signUp?key='+API_KEY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pass,returnSecureToken:false})});
+    const d=await r.json();
+    if(d.error)throw new Error(d.error.message);
+    await fbP('portal/users/'+d.localId,{name,email,role});
+    msg.innerHTML='<div class="msg-ok">✓ Аккаунт создан: '+esc(name)+' ('+esc(email)+')</div>';
+    document.getElementById('newName').value='';document.getElementById('newEmail').value='';document.getElementById('newPass').value='';
+    loadStaff();
+  }catch(e){
+    let m=e.message;
+    if(m.includes('EMAIL_EXISTS'))m='Этот email уже занят';
+    else if(m.includes('WEAK_PASSWORD'))m='Пароль слишком простой';
+    msg.innerHTML='<div class="msg-err">'+m+'</div>';
+  }
+}
+
+async function loadStaff(){
+  try{
+    const d=await fbG('portal/users');
+    const el=document.getElementById('staffList');
+    if(!d){el.innerHTML='<div class="empty-state"><p>Сотрудников пока нет</p></div>';return}
+    const users=Object.values(d);
+    el.innerHTML=users.map(u=>'<div class="staff-card"><div class="staff-info"><span class="staff-name">'+esc(u.name)+'</span><span class="staff-email">'+esc(u.email)+'</span></div><span class="staff-role">'+(u.role==='senior'?'Старший':'Админ')+'</span></div>').join('');
+  }catch(e){}
+}
+
+// ═══ DASH ═══
+function updateDash(){const unread=anns.filter(a=>!a.readers||!a.readers[userName]).length;document.getElementById('dU').textContent=unread;document.getElementById('dI').textContent=incs.length;const b=document.getElementById('ubadge');if(unread>0){b.style.display='';b.textContent=unread}else b.style.display='none'}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+</script>
+</body>
+</html>

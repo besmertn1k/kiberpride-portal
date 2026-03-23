@@ -1052,7 +1052,8 @@ async function loadStaff(){
     if(!d){el.innerHTML='<div class="empty">'+ic('users',40)+'<p>Сотрудников пока нет</p></div>';return}
     const all=Object.entries(d);
     const pending=all.filter(([k,u])=>u.role==='pending');
-    const active=all.filter(([k,u])=>u.role!=='pending');
+    const rejected=all.filter(([k,u])=>u.role==='rejected');
+    const active=all.filter(([k,u])=>u.role!=='pending'&&u.role!=='rejected');
     let html='';
     if(pending.length){
       html+='<div class="st-section">'+ic('clock',14)+' Ожидают верификации ('+pending.length+')</div>';
@@ -1060,7 +1061,11 @@ async function loadStaff(){
     }
     if(active.length){
       html+='<div class="st-section">'+ic('users',14)+' Активные сотрудники ('+active.length+')</div>';
-      html+=active.map(([uid,u])=>'<div class="staff-card"><div class="staff-info"><span class="staff-name">'+esc(u.name)+'</span><span class="staff-email">'+esc(u.email)+'</span></div><span class="staff-role '+(u.role==='senior'?'senior':'admin')+'">'+(u.role==='senior'?'Старший':'Админ')+'</span></div>').join('');
+      html+=active.map(([id,u])=>'<div class="staff-card"><div class="staff-info"><span class="staff-name">'+esc(u.name)+'</span><span class="staff-email">'+esc(u.email)+'</span></div><div class="staff-actions"><span class="staff-role '+(u.role==='senior'?'senior':'admin')+'">'+(u.role==='senior'?'Старший':'Админ')+'</span><button class="btn-sm danger" onclick="deleteUser(\''+id+'\',\''+esc(u.name)+'\')">'+ic('trash',12)+'</button></div></div>').join('');
+    }
+    if(rejected.length){
+      html+='<div class="st-section" style="color:var(--danger)">'+ic('userx',14)+' Отклонённые ('+rejected.length+')</div>';
+      html+=rejected.map(([id,u])=>'<div class="staff-card" style="opacity:.5"><div class="staff-info"><span class="staff-name">'+esc(u.name)+'</span><span class="staff-email">'+esc(u.email)+'</span></div><div class="staff-actions"><span class="staff-role is-pending">Отклонён</span><button class="btn-sm" onclick="approveUser(\''+id+'\')" style="color:var(--green);border-color:rgba(74,222,128,.2)">'+ic('usercheck',12)+'</button><button class="btn-sm danger" onclick="deleteUser(\''+id+'\',\''+esc(u.name)+'\')">'+ic('trash',12)+'</button></div></div>').join('');
     }
     el.innerHTML=html||'<div class="empty">'+ic('users',40)+'<p>Сотрудников пока нет</p></div>';
   }catch(e){}
@@ -1077,6 +1082,13 @@ async function rejectUser(id){
     await fbP('portal/users/'+id+'/role','rejected');
     toast('Сотрудник отклонён','info');loadStaff();
   }catch(e){toast('Ошибка','err')}
+}
+async function deleteUser(id,name){
+  if(!confirm('Удалить сотрудника '+name+'? Запись будет убрана из портала.'))return;
+  try{
+    await fbD('portal/users/'+id);
+    toast('Сотрудник удалён','info');loadStaff();
+  }catch(e){toast('Ошибка удаления','err')}
 }
 
 /* ═══════════════════════════════════════════════
